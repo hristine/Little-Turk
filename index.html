@@ -1,0 +1,361 @@
+<html>
+	<head>
+		<title>Little Turk</title>
+
+
+		<style type="text/css">
+			body {
+				background-color: black;
+				color: #f1e8af;
+				font-family: Verdana;
+			}
+			
+			textarea {
+				background-color: black;
+				color: #f1e8af;
+			}
+			
+			#turk {
+				width: 340px;
+				height: 270px;
+				overflow: hidden; 
+				margin: 0px;
+				border: none;
+				
+				float: left;
+			}
+			
+			#scrollback {
+				width: 540px;
+				height: 375px;
+				
+				overflow-y: auto;
+				border: 1px dotted #f1e8af;
+			}
+			#interact {
+				width: 540px;
+			}
+			
+			#container {
+				padding-left: 10px;
+				float: left;
+			}
+			
+			p.turk {
+				color: green;
+			}
+			
+			img.piximilar {
+				float: left;
+			}
+		</style>
+		<script type="text/javascript" src="/turk/jquery.js"></script>
+		<script type="text/javascript" src="/turk/colour.js"></script>
+		<script type="text/javascript">
+			var interact;
+			var scrollback;
+			
+			var colourMap = {
+				"aqua": "#00FFFF",
+				"aquamarine": "#7FFFD4",
+				"azure": "#F0FFFF",
+				"beige": "#F5F5DC",
+				"bisque": "#FFE4C4",
+				"black": "#000000",
+				"blue": "#0000FF",
+				"brown": "#A52A2A",
+				"chartreuse": "#7FFF00",
+				"chocolate": "#D2691E",
+				"coral": "#FF7F50",
+				"cornsilk": "#FFF8DC",
+				"crimson": "#DC143C",
+				"cyan": "#00FFFF",
+				"fuchsia": "#FF00FF",
+				"gainsboro": "#DCDCDC",
+				"gold": "#FFD700",
+				"gray": "#808080",
+				"grey": "#808080",
+				"green": "#008000",
+				"indigo": "#4B0082",
+				"ivory": "#FFFFF0",
+				"khaki": "#F0E68C",
+				"lavender": "#E6E6FA",
+				"lime": "#00FF00",
+				"linen": "#FAF0E6",
+				"magenta": "#FF00FF",
+				"maroon": "#800000",
+				"moccasin": "#FFE4B5",
+				"navy": "#000080",
+				"olive": "#808000",
+				"orange": "#FFA500",
+				"orchid": "#DA70D6",
+				"peru": "#CD853F",
+				"pink": "#FFC0CB",
+				"plum": "#DDA0DD",
+				"purple": "#800080",
+				"red": "#FF0000",
+				"salmon": "#FA8072",
+				"sienna": "#A0522D",
+				"silver": "#C0C0C0",
+				"snow": "#FFFAFA",
+				"tan": "#D2B48C",
+				"teal": "#008080",
+				"thistle": "#D8BFD8",
+				"tomato": "#FF6347",
+				"turquoise": "#40E0D0",
+				"violet": "#EE82EE",
+				"wheat": "#F5DEB3",
+				"white": "#FFFFFF",
+				"yellow": "#FFFF00"
+			}
+			
+			function changeTurk(action) {
+				jQuery.ajax({
+					'url': '/turk/turker.php?action=' + action,
+					'success': function () {
+					}
+				})
+			}
+			
+			function colourLookup(colour) {
+				if (colourMap[colour.toLowerCase()]) {
+					return colourMap[colour.toLowerCase()];
+				}
+				return colour;
+			}
+			
+			function waitTurk() {
+				changeTurk('Wait');
+			}
+			
+			var hue;
+			function iLoveRainbows() {
+
+				turkling("Something is broken ):", waitTurk); return;
+				if (hue < 1) {
+					iLoveColours(jQuery.Color([ hue, 0.8, 0.8], 'HSV').toHEX(), 7, function () { hue += 0.05; iLoveRainbows( );});	
+				}
+			}
+			
+			function iLoveColours(colour, count, callback) {
+				changeTurk('Type');
+				var postdata = {
+					'method': 'color_search',
+					'min_score': 0,
+					'max_num_matches': count,
+					'colors[0]': colourLookup(colour)
+				};
+
+				jQuery.post('http://piximilar.hackdays.tineye.com/rest/?callback=?', postdata, function(data) {
+					for (image in data.result) {
+						stash('<img class="piximilar" src="http://piximilar.hackdays.tineye.com/collection/?filepath=' + data.result[image].filepath + '" />');
+					}
+					if (callback) {
+						callback();
+					}
+				}, 'jsonp');
+			}
+			
+			var place = 'Waterloo';
+			function findSomething(something) {
+				changeTurk('Search');
+				something = something.replace('?', '');
+				var postdata = {
+					'url': 'http://api.yellowapi.com/FindBusiness/',
+					'pg': '1',
+					'what': something,
+					'where': place,
+					'pgLen': '10',
+					'lang': 'en',
+					'fmt': 'json',
+					'apikey': 'a1s2d3f4g5h6j7k8l9k6j5j4',
+					'UID': 'turkturkturkmurk'
+				}
+				jQuery.ajax({
+					'url': '/Coalesce/Server/proxy.php',
+					'data': postdata,
+					'success': function(data) {
+						for (var i = 0; i < data.listings.length; i++) {
+							var address = '';
+							if (i == data.listings.length - 1) {
+								turkling(data.listings[i].name + ' (' + data.listings[i].address.street + ')', waitTurk);
+							} else {
+								turkling(data.listings[i].name + ' (' + data.listings[i].address.street + ')');
+							}	
+						}
+					},
+					'type': 'post',
+					'dataType': 'json'
+				});
+			}
+			
+			function domainInfo(domain) {
+				var postdata = {
+					'url': 'http://api.postrank.com/v2/domain/activity',
+					'appkey': 'hackwaterloo',
+					'id': domain
+				}
+				jQuery.ajax({
+					'url': '/Coalesce/Server/proxy.php',
+					'data': postdata,
+					'success': function (data) {
+						for (toplevel in data) {
+							for (subdomain in data[toplevel]) {
+								var things = '';
+								if (data[toplevel][subdomain].twitter) {
+									things += data[toplevel][subdomain].twitter + ' tweets, ';
+								}
+								if (data[toplevel][subdomain].fb_post) {
+									things += data[toplevel][subdomain].fb_post + ' facebook posts, ';
+								}
+								if (data[toplevel][subdomain].trackbacks) {
+									things += data[toplevel][subdomain].trackbacks + ' trackbacks, ';
+								}
+								
+								if (data[toplevel][subdomain].engagement) {
+									things += 'with a score of ' + data[toplevel][subdomain].engagement + ' engagement, ';
+								}
+								turkling(subdomain + ' has ' + things, waitTurk);
+							}
+						}
+					},
+					'type': 'post',
+					'dataType': 'json'
+				});
+			}
+			
+			function stash(value) {
+				var newElt = jQuery('<p>' + value + '</p>');
+				scrollback.append(newElt);
+				scrollback.scrollTop(500000);
+			}
+ 
+ 			function turkling(value, postAction) {
+				changeTurk('Type');
+				callback = function() {
+					stash('<p class="turk">' + value + '</p>');
+					if (postAction) {
+						postAction();
+					}
+				}
+
+ 				setTimeout(callback, Math.max(1000, value.length * 100));
+ 			}
+ 
+ 			function grandDecider(value) {
+ 				var tokens = value.split(' ');
+ 				for (var i = 0; i < tokens.length; i++) {
+ 					tokens[i] = tokens[i].replace(',','').replace('?','').replace('!','');
+ 				}
+ 				
+ 				if (value == 'clear') {
+ 					scrollback.empty();
+ 					waitTurk();
+ 				}
+ 				if (value.toLowerCase().indexOf('sorry') >= 0) {
+ 					turkling('That\'s okay :}', waitTurk);
+ 				}
+ 				if (value.toLowerCase().indexOf('thank') >= 0) {
+ 					turkling('You\'re Welcome!', waitTurk);
+ 				}
+ 				if (value.toLowerCase().indexOf('am in') >= 0) {
+ 					place = tokens[tokens.length - 1];
+ 					turkling("Okay! I'll look for places in " + place, waitTurk);
+ 				}
+ 				if (value.indexOf('Hello') == 0) {
+					turkling('Hello!', function () { changeTurk('Hello')});
+ 				}
+  				else if (value == 'Sleep, Little Turk' || value.toLowerCase().indexOf('stop') >= 0) {
+ 					changeTurk('Wait');
+ 				}
+ 				else if (value.toLowerCase().indexOf('humour') > 0) {
+ 					changeTurk('Humour');
+ 					var postHumourous = function () {
+ 						turkling('Yes.', waitTurk);
+ 					}
+ 					setTimeout(postHumourous, 8000);
+ 				}
+ 				else if (value.toLowerCase().indexOf('hula') >= 0) {
+ 					turkling('The less said about the hula hoop, the better.', waitTurk);
+ 				}
+ 				else if (value.toLowerCase().indexOf('ukulele') >= 0) {
+ 					turkling('I don\'t know how to play :(', waitTurk);
+ 				}
+ 				else if (jQuery.inArray('invoice', tokens) >= 0) {
+ 					turkling('I hear there\'s an API for that', waitTurk);
+ 				}
+ 				else if (value.toLowerCase().indexOf('movie') >= 0) {
+ 					turkling('I have no idea about movies, sorry.', waitTurk);
+ 				}
+ 				else if (value.toLowerCase().indexOf('about') >= 0) {
+ 					domainInfo(tokens[tokens.length - 1]);
+ 				}
+ 				else if (value.toLowerCase().indexOf('i like') >= 0) {
+ 					if (tokens[tokens.length - 1] == 'you') {
+ 						turkling('I like you too', waitTurk);
+ 					} else {
+ 						if (value.toLowerCase().indexOf('rainbow') > 0) {
+
+							turkling("I like rainbows too, but something is broken ):", waitTurk); return;
+ 							hue = 0;
+ 							iLoveRainbows(10);
+ 						} else {
+ 						
+							turkling("Something is broken ):", waitTurk); return;
+ 							iLoveColours(tokens[tokens.length - 1], 35, function () {setTimeout(waitTurk, 2000);});
+ 						}
+ 					}
+ 				}
+ 				else if (value.toLowerCase().indexOf('where is') >= 0) {
+ 					var something = tokens[tokens.length-1];
+ 					something = something.replace('?','');
+ 					if (jQuery.inArray(something, ['Leila', 'Corey', 'Jesse', 'Brydon', 'Chris']) >= 0) {
+ 						turkling('Just over there.', waitTurk);
+ 					} else {
+	 					findSomething(something);
+	 				}
+ 				}
+ 				else if (value.indexOf('restaurant') > 0) {
+ 					turkling("I don't do restaurant reservations", function() {
+ 						turkling("Seriously.  I quit.", function () {
+ 							changeTurk('Scram');
+ 						});
+ 					});
+ 				}
+
+ 				else if (value.indexOf('Little Turk') == 0) {
+ 					changeTurk(tokens[tokens.length - 1]);
+ 				}
+  			}
+ 
+			function textHandler() {
+				var text = interact.val();
+				stash('&gt;&gt;&gt; ' + text);
+				interact.val('');
+				
+				grandDecider(text);
+			}
+			
+			jQuery(document).ready(function () {
+				changeTurk('Wait');
+				interact = jQuery('#interact');
+				scrollback = jQuery('#scrollback');
+				interact.change(textHandler);
+			});
+		</script>
+	</head>
+	
+	<body>
+		<h1>Little Turk</h1>
+		<h2>The Nicest Turk You'll Meet Today.  And Probably Tomorrow Too.</h2>
+
+		<iframe src="/turk/Thinger.mov" id="turk"></iframe>
+		
+		<div id="container">
+			<div id="scrollback">
+			
+			</div>
+			<input type="text" id="interact" />
+		</div>
+	</body>
+</html>
